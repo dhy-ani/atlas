@@ -19,7 +19,7 @@ import os
 import re
 from datetime import datetime, timedelta, timezone
 
-from app.agents import budget_guard, graphrag
+from app.agents import budget_guard
 
 MAX_RESEARCH_LLM_CALLS = 2  # one search-planning call + one synthesis call, capped
 RESEARCH_TTL_HOURS = 24
@@ -92,7 +92,7 @@ def _search_and_synthesize(destination_name: str, needs_text: str, avoid_categor
 
 
 def research_pois(destination_id: str, destination_name: str, needs: dict, avoid_categories: list[str] | None = None) -> tuple[list[dict], str]:
-    """Returns (pois, source) where source is "web" or "static-seed" — surfaced
+    """Returns (pois, source) where source is "web" or "unavailable" — surfaced
     in the Proposal note so it's always visible whether a route came from real
     research or the offline fallback (the "hardcoded information" the group
     should be able to tell apart from the real thing)."""
@@ -102,8 +102,7 @@ def research_pois(destination_id: str, destination_name: str, needs: dict, avoid
         pois = _search_and_synthesize(destination_name, needs_text, avoid_categories)
         if pois:
             return pois, "web"
-    static_pois = [p for p in graphrag.pois_for_destination(destination_id) if p.get("category") not in avoid_categories]
-    return static_pois, "static-seed"
+    return [], "unavailable"
 
 
 def research_insights(destination_name: str, max_budget: float | None = None) -> dict:

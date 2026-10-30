@@ -1,4 +1,4 @@
-# Backend — Wanderlust Atlas API
+# Backend — Atlas API
 
 FastAPI service: real accounts (JWT), a per-user atlas, live web-search-derived
 flights/best-time/budget-vs-luxury data, place search, route planning, and the

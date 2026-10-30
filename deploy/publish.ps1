@@ -3,8 +3,8 @@
 # Requires: node/npm, git, and push access to the repo.
 $ErrorActionPreference = "Stop"
 
-$Repo = "https://github.com/dhy-ani/wanderlust-atlas.git"
-$Base = "/wanderlust-atlas/"                      # must match the repo name
+$Repo = "https://github.com/dhy-ani/atlas.git"
+$Base = "/atlas/"                      # must match the repo name
 
 $root = Split-Path $PSScriptRoot -Parent
 Push-Location "$root\frontend"
@@ -24,5 +24,5 @@ try {
         git commit -q -m "Deploy Wanderlust Atlas static site"
         git push -f $Repo gh-pages
     } finally { Pop-Location }
-    Write-Host "`nDeployed -> https://dhy-ani.github.io/wanderlust-atlas/" -ForegroundColor Green
+    Write-Host "`nDeployed -> https://dhy-ani.github.io/atlas/" -ForegroundColor Green
 } finally { Pop-Location }

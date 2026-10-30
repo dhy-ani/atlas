@@ -22,19 +22,13 @@ import os
 from pathlib import Path
 
 SEED_PATH = Path(__file__).resolve().parents[2] / "data" / "graph_seed.json"
-POI_SEED_PATH = Path(__file__).resolve().parents[2] / "data" / "poi_seed.json"
 
 
 def _load_seed() -> dict:
     return json.loads(SEED_PATH.read_text(encoding="utf-8"))
 
 
-def _load_poi_seed() -> dict:
-    return json.loads(POI_SEED_PATH.read_text(encoding="utf-8"))
-
-
 _SEED = _load_seed()
-_POI_SEED = _load_poi_seed()
 
 
 def _neo4j_driver():
@@ -193,7 +187,7 @@ def pois_for_destination(dest_id: str) -> list[dict]:
                 return rows
         finally:
             driver.close()
-    return list(_POI_SEED.get(dest_id, []))
+    return []
 
 
 def poi_alternatives(dest_id: str, disliked_category: str, prefer_categories: list[str] | None = None,

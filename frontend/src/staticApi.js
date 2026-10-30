@@ -63,7 +63,33 @@ export const staticApi = {
   removeFromAtlas: async (id) => { saveAtlas(loadAtlas().filter((d) => d.id !== id)); return { removed: id }; },
 
   flights: async () => ({ ...NOT_CONFIGURED, origin: 'JFK' }),
-  bestTime: async () => ({ ...NOT_CONFIGURED }),
+  bestTime: async (name, country, lat, lng) => {
+    try {
+      const end = new Date().getFullYear() - 1, start = end - 4;
+      const qs = new URLSearchParams({ latitude: lat, longitude: lng, start_date: `${start}-01-01`, end_date: `${end}-12-31`,
+        daily: 'temperature_2m_mean,precipitation_sum', timezone: 'auto' });
+      const res = await fetch(`https://archive-api.open-meteo.com/v1/archive?${qs}`);
+      if (!res.ok) throw new Error(String(res.status));
+      const { daily } = await res.json();
+      const names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const t = Array.from({ length: 12 }, () => []), r = Array(12).fill(0);
+      daily.time.forEach((d, i) => {
+        const m = +d.slice(5, 7) - 1;
+        if (daily.temperature_2m_mean[i] != null) t[m].push(daily.temperature_2m_mean[i]);
+        if (daily.precipitation_sum[i] != null) r[m] += daily.precipitation_sum[i];
+      });
+      const months = names.map((n, m) => {
+        const avg = t[m].reduce((a, b) => a + b, 0) / t[m].length, rain = r[m] / 5;
+        const comfort = Math.max(0, Math.min(100, 100 - Math.abs(avg - 22) * 3.2 - rain * 0.18));
+        return { month: m + 1, month_name: n, avg_temp_c: Math.round(avg * 10) / 10, rain_mm: Math.round(rain), comfort_score: Math.round(comfort * 10) / 10 };
+      });
+      const ranked = [...months].sort((a, b) => b.comfort_score - a.comfort_score);
+      return { status: 'ok', destination: name, source: 'open-meteo-era5', months,
+        best_months: ranked.slice(0, 3).map((m) => m.month_name), avoid_months: ranked.slice(-2).map((m) => m.month_name) };
+    } catch (e) {
+      return { status: 'error', message: 'Climate data is unavailable at the moment.' };
+    }
+  },
   tradeoff: async () => ({ ...NOT_CONFIGURED }),
 
   planRoute: async (stops, optimize = false) => {

@@ -49,8 +49,8 @@ const realApi = {
   // "status" field the caller must check.
   flights: (destinationName, destinationCountry = '', origin = 'JFK', depart) =>
     get('/flights', { destination_name: destinationName, destination_country: destinationCountry, origin, ...(depart ? { depart } : {}) }),
-  bestTime: (destinationName, destinationCountry = '') =>
-    get('/predict/best-time', { destination_name: destinationName, destination_country: destinationCountry }),
+  bestTime: (destinationName, destinationCountry = '', lat, lng) =>
+    get('/predict/best-time', { destination_name: destinationName, destination_country: destinationCountry, lat, lng }),
   tradeoff: (destinationName, destinationCountry = '', budgetUsd) =>
     get('/predict/tradeoff', { destination_name: destinationName, destination_country: destinationCountry, budget_usd: budgetUsd }),
 

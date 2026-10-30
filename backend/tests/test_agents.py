@@ -1,10 +1,15 @@
 """Tests for the multi-agent negotiation system. All run on the free rule-based
 path (no OPENROUTER_API_KEY, no Neo4j, no ChromaDB needed) — that's the point:
 the whole loop must be provably correct at $0 before any paid key is added."""
+import json
+from pathlib import Path
+
 from app.agents import graphrag, reasoner
 from app.agents.mediator import build_initial_proposal, run_negotiation
 from app.agents.twin import DigitalTwin
 from app.models.agent_schemas import IdentityVector, Proposal, ProposalItem, Verdict
+
+_POI_FIXTURES = json.loads((Path(__file__).parent / "fixtures" / "poi_fixtures.json").read_text(encoding="utf-8"))
 
 
 def make_identity(name, group="test-group", **kw):
@@ -163,7 +168,7 @@ def test_build_initial_proposal_prefers_liked_categories():
 def test_build_initial_proposal_never_mixes_destinations():
     alice = make_identity("Alice", group="g-onecity", budget_max=2000)
     proposal = build_initial_proposal("tokyo", [DigitalTwin(alice)])
-    known_tokyo_pois = {p["name"] for p in graphrag.pois_for_destination("tokyo")}
+    known_tokyo_pois = {p["name"] for p in _POI_FIXTURES["tokyo"]}
     assert all(item.name in known_tokyo_pois for item in proposal.items)
 
 

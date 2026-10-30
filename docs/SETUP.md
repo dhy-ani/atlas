@@ -52,7 +52,7 @@ Copy `.env.example` → `.env` (repo root) and fill any of these:
    Without it the 2D map falls back to keyless Leaflet + Esri satellite tiles and
    **Street View is unavailable** (the button is hidden).
 
-> ⚠️ Google Maps and Places require a billing account (they include a monthly free
+> Google Maps and Places require a billing account (they include a monthly free
 > credit). Amadeus and OpenWeather have genuinely free tiers.
 
 ## 3. Force mock data

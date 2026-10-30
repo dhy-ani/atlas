@@ -54,10 +54,27 @@ def test_flights_not_configured_without_keys():
     assert r.json()["status"] == "not_configured"
 
 
-def test_best_time_not_configured_without_keys():
-    r = client.get("/api/predict/best-time", params={"destination_name": "Rio", "destination_country": "Brazil"})
-    assert r.status_code == 200
-    assert r.json()["status"] == "not_configured"
+def _fake_months():
+    return [{"month": m, "month_name": n, "avg_temp_c": 10.0 + m, "rain_mm": 50.0, "comfort_score": 40.0 + m}
+            for m, n in enumerate(["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], 1)]
+
+
+def test_best_time_uses_real_climate_data(monkeypatch):
+    async def fake(lat, lng):
+        return _fake_months()
+    monkeypatch.setattr("app.routers.predictions.climate_client.monthly_normals", fake)
+    r = client.get("/api/predict/best-time", params={"destination_name": "Rio", "lat": -22.9, "lng": -43.2})
+    body = r.json()
+    assert body["status"] == "ok" and body["source"] == "open-meteo-era5"
+    assert body["best_months"] == ["Dec", "Nov", "Oct"]
+
+
+def test_best_time_unavailable_when_upstream_fails(monkeypatch):
+    async def fake(lat, lng):
+        return None
+    monkeypatch.setattr("app.routers.predictions.climate_client.monthly_normals", fake)
+    r = client.get("/api/predict/best-time", params={"destination_name": "Rio", "lat": -22.9, "lng": -43.2})
+    assert r.json()["status"] == "error"
 
 
 def test_tradeoff_not_configured_without_keys():

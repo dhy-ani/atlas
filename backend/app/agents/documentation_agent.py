@@ -20,7 +20,7 @@ def document_negotiation(result: NegotiationResult) -> str:
     lines.append(f"# Negotiation record — {result.final_proposal.destination_id or 'destination'}")
     lines.append("")
     lines.append(
-        f"**Outcome:** {'✅ Accepted' if result.accepted else '⏱️ Hit the round limit without full agreement'} "
+        f"**Outcome:** {'Accepted' if result.accepted else 'Hit the round limit without full agreement'} "
         f"after {len(result.rounds)} round(s), final score **{result.final_score}**."
     )
     lines.append(
@@ -37,7 +37,7 @@ def document_negotiation(result: NegotiationResult) -> str:
             lines.append(f"*Mediator's note: {round_.proposal.note}*")
         lines.append("")
         for v in round_.verdicts:
-            icon = {"ACCEPT": "✅", "NEUTRAL": "➖", "REJECT": "❌"}[v.verdict.value if isinstance(v.verdict, Verdict) else v.verdict]
+            icon = {"ACCEPT": "", "NEUTRAL": "", "REJECT": ""}[v.verdict.value if isinstance(v.verdict, Verdict) else v.verdict]
             lines.append(f"- {icon} **{v.member_name}** ({v.via}): {v.verdict} at {v.personal_score} — {v.reasoning}")
         lines.append("")
 

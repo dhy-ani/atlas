@@ -1,5 +1,5 @@
 # ============================================================================
-#  Wanderlust Atlas — full stack in two containers.
+#  Atlas — full stack in two containers.
 #
 #    docker compose up --build      # build images and run
 #    open http://localhost:8080

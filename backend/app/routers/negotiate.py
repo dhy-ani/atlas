@@ -59,7 +59,7 @@ def negotiate(req: NegotiateRequest, user: User = Depends(get_current_user), db:
 
     initial = build_initial_proposal(req.destination_id, twins)
     if not initial.items:
-        raise HTTPException(404, f"no known points of interest for '{req.destination_id}' yet")
+        raise HTTPException(503, "Research data for this destination is unavailable at the moment.")
     result = run_negotiation(twins, initial, max_rounds=req.max_rounds)
     result.narrative = document_negotiation(result)
     return result

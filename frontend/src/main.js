@@ -50,7 +50,7 @@ function addNavItem(d, index = document.querySelectorAll('.navItem').length) {
   const el = document.createElement('div');
   el.className = 'navItem';
   el.dataset.id = d.id;
-  el.innerHTML = `<span class="dot"></span>${d.name}<span class="rankTag">${d.custom ? '★' : String(index + 1).padStart(2, '0')}</span>`;
+  el.innerHTML = `<span class="dot"></span>${d.name}<span class="rankTag">${d.custom ? 'new' : String(index + 1).padStart(2, '0')}</span>`;
   el.onclick = () => selectDestination(d.id);
   navList.appendChild(el);
 }

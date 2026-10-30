@@ -126,7 +126,7 @@ export function initMapPanel({ onPinGlobe, onAddRoute, onAddDestination }) {
         <div class="placeCard" data-i="${i}">
           <div class="pcMain">
             <div class="pcName">${p.name}</div>
-            <div class="pcMeta">${p.category || 'place'}${p.rating ? ' · ★ ' + p.rating : ''} · ${data.source}</div>
+            <div class="pcMeta">${p.category || 'place'}${p.rating ? ' · rated ' + p.rating : ''} · ${data.source}</div>
           </div>
           <div class="pcBtns">
             <button data-act="focus" data-i="${i}" title="Show on map">Map</button>

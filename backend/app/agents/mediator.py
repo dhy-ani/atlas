@@ -76,11 +76,6 @@ def research_pois(destination_id: str, twins: list[DigitalTwin], avoid_categorie
     dest_name = dest["name"] if dest else destination_id
     needs = aggregate_needs(twins)
     pois, source = research_agent.research_pois(destination_id, dest_name, needs, avoid_categories)
-    if not pois:
-        # Web research returned nothing usable — still fall back to the trending
-        # signal + static seed rather than propose an empty trip.
-        pois = graphrag.pois_for_destination(destination_id)
-        source = "static-seed"
     return pois, source
 
 
@@ -319,7 +314,7 @@ def _run_langgraph(destination_id: str, twins: list[DigitalTwin], initial_propos
 
     result = app.invoke(
         {
-            "proposal": initial_proposal, "pois": [], "poi_source": "static-seed",
+            "proposal": initial_proposal, "pois": [], "poi_source": "web",
             "avoid_categories": [], "exclude_names": [i.name for i in initial_proposal.items],
             "rounds": [], "round_num": 1, "stalled": False,
         },

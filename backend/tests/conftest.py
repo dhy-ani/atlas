@@ -51,3 +51,25 @@ def auth_headers(client):
     assert resp.status_code == 201, resp.text
     token = resp.json()["token"]
     return {"Authorization": f"Bearer {token}"}
+
+
+import json as _json
+from pathlib import Path as _Path
+
+import pytest as _pytest
+
+_POI_FIXTURES = _json.loads((_Path(__file__).parent / "fixtures" / "poi_fixtures.json").read_text(encoding="utf-8"))
+
+
+@_pytest.fixture(autouse=True)
+def _fixture_research(monkeypatch):
+    """Stands in for live web research in tests (no network, no keys). Fixture
+    data lives only under tests/ and is never shipped or displayed by the app."""
+    from app.agents import research_agent
+
+    def fake(destination_id, destination_name, needs, avoid_categories=None):
+        avoid = set(avoid_categories or [])
+        pois = [p for p in _POI_FIXTURES.get(destination_id, []) if p.get("category") not in avoid]
+        return pois, ("web" if pois else "unavailable")
+
+    monkeypatch.setattr(research_agent, "research_pois", fake)

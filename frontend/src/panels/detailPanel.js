@@ -124,7 +124,7 @@ export function initDetailPanel({ onAddBucket, onAddRoute, onOpenMap, onSearchNe
     try {
       const [flights, best] = await Promise.all([
         api.flights(dest.name, dest.country),
-        api.bestTime(dest.name, dest.country),
+        api.bestTime(dest.name, dest.country, dest.lat, dest.lng),
       ]);
       if (current?.id !== dest.id) return; // user moved on
       box.innerHTML = renderFlights(flights) + renderBestTime(best);

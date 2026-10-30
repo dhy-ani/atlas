@@ -1,4 +1,4 @@
-# Frontend — Wanderlust Atlas
+# Frontend — Atlas
 
 Vite + Three.js single-page app: the 3D satellite globe, 2D detail map with
 Satellite/Street View, and all the planning UI.

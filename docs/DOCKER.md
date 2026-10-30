@@ -119,8 +119,7 @@ Key concepts it demonstrates:
 
 ---
 
-## 7. Run it on another laptop  ✅
-
+## 7. Run it on another laptop  
 1. **Install Docker Desktop** (Windows/macOS) or Docker Engine (Linux), and start it.
 2. **Get the project** onto the laptop (git clone, or copy the folder — you do *not*
    need Python or Node installed; Docker handles all of it).
@@ -183,4 +182,4 @@ docker-compose.yml
 
 That's the whole mental model: **Dockerfile → image → container**, wired together and
 run by **compose**, with **volumes** for persistence and a private **network** for the
-two services to talk. 🐳
+two services to talk. 

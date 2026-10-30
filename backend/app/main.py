@@ -1,4 +1,4 @@
-"""Wanderlust Atlas API.
+"""Atlas API.
 
 Run:  uvicorn app.main:app --reload --port 8000
 Docs: http://localhost:8000/docs
@@ -26,7 +26,7 @@ async def _lifespan(_app: FastAPI):
 
 
 app = FastAPI(
-    title="Wanderlust Atlas API",
+    title="Atlas API",
     version="1.0.0",
     description="Real accounts, a personal atlas, live web-sourced flight/best-time/trade-off data, places, routes, and multi-agent group trip planning.",
     lifespan=_lifespan,

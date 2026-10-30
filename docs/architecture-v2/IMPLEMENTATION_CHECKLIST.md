@@ -1,6 +1,6 @@
 # Implementation Checklist — Multi-Agent Group Trip Planner
 
-Legend: ✅ built + tested this session · 🧩 scaffolded (real code, needs your infra/key to go live) · ⬜ not started (documented, needs a separate decision/session)
+Legend: built + tested this session · scaffolded (real code, needs your infra/key to go live) · ⬜ not started (documented, needs a separate decision/session)
 
 ## Update: scope correction (session 2)
 
@@ -16,7 +16,7 @@ trending-signal agent replacing the (infeasible) Instagram-scraping ask
 (`agents/scraper.py`), English-only place names at the source, and mobile
 responsive fixes (toolbar/modals were overflowing on narrow viewports).
 
-### ✅ Live LLM verified end-to-end (real, controlled test — not simulated)
+### Live LLM verified end-to-end (real, controlled test — not simulated)
 ```
 via=llm  Alice: ACCEPT (90.0) - "The Louvre is a world-renowned museum with
   extensive historical artifacts, fitting Alice's interest in history..."
@@ -36,7 +36,7 @@ spend real money whenever a rule-based score happened to land in the
 deterministic regardless of what's in the environment; found and fixed this
 session via a genuinely flaky test run.
 
-### ✅ Env-loading bug fixed
+### Env-loading bug fixed
 `app/agents/*.py` read `os.environ` directly, but nothing was loading the root
 `.env` into the process for local (non-Docker) runs — `OPENWEATHER_API_KEY`-style
 `pydantic-settings` loading doesn't touch `os.environ`. Fixed in `config.py`
@@ -52,17 +52,17 @@ session via a genuinely flaky test run.
   data layer: recommend keeping mocks as the offline/dev fallback and adding an agent
   that *proposes* new destinations via GraphRAG + web search, rather than deleting the
   safety net. Flag this back to me if you want the hard deletion anyway.
-- ✅ Amadeus flight API — already wired (`backend/app/services/amadeus_client.py`,
+- Amadeus flight API — already wired (`backend/app/services/amadeus_client.py`,
   built in an earlier session), reused as-is by the negotiation loop.
-- ✅ Google Places + OpenWeather — already wired, reused as-is.
+- Google Places + OpenWeather — already wired, reused as-is.
 
 **Day 2: GraphRAG Knowledge Base**
-- ✅ Neo4j service added to `docker-compose.agents.yml`.
-- ✅ Ingestion script: `backend/scripts/ingest_graphrag.py` — maps
+- Neo4j service added to `docker-compose.agents.yml`.
+- Ingestion script: `backend/scripts/ingest_graphrag.py` — maps
   `(Place)-[:IS_IN]->(City)-[:LOCATED_IN]->(Country)`,
   `(Place)-[:HAS_CATEGORY]->(Category)`, `(City)-[:HAS_SAFETY]->(SafetyLevel)`,
   `(City)-[:BEST_SEASON]->(Season)` from the existing destinations dataset.
-- ✅ Query interface: `backend/app/agents/graphrag.py` — `similar_places()`,
+- Query interface: `backend/app/agents/graphrag.py` — `similar_places()`,
   `alternatives_for_dislike()`, with a static-dict fallback when Neo4j is unreachable.
 
 **Day 3: Real ML Calibration**
@@ -76,36 +76,36 @@ session via a genuinely flaky test run.
 ## Phase 2 — Memory & Identity
 
 **Day 4: Vector Database**
-- ✅ ChromaDB service added to `docker-compose.agents.yml`, persistent volume.
-- 🧩 Embeddings: uses `sentence-transformers` (local, free, no API key) by default
+- ChromaDB service added to `docker-compose.agents.yml`, persistent volume.
+- Embeddings: uses `sentence-transformers` (local, free, no API key) by default
   instead of OpenAI embeddings — avoids a second paid dependency for something that
   doesn't need frontier quality. Swappable to OpenAI/OpenRouter embeddings later via
   `EMBEDDING_PROVIDER` env var if you want closer semantic matching.
 
 **Day 5: Profiling Engine**
-- ✅ Identity Vector schema: `backend/app/models/agent_schemas.py::IdentityVector`
+- Identity Vector schema: `backend/app/models/agent_schemas.py::IdentityVector`
   (budget range, pace, category likes/dislikes, hard constraints, free-text notes).
-- ✅ Start/end survey endpoints: `backend/app/routers/survey.py`.
-- 🧩 "Extract memory fragments from chat via LLM" — the endpoint exists
+- Start/end survey endpoints: `backend/app/routers/survey.py`.
+- "Extract memory fragments from chat via LLM" — the endpoint exists
   (`POST /api/survey/extract`) and calls the LLM client, but is untested end-to-end
   without an `OPENROUTER_API_KEY` (falls back to keyword extraction, which is real but
   cruder).
-- ✅ Semantic search over stored preferences: `backend/app/agents/memory.py::recall()`.
+- Semantic search over stored preferences: `backend/app/agents/memory.py::recall()`.
 
 ## Phase 3 — Multi-Agent Ecosystem
 
 **Day 6: Digital Twin Agents**
-- ✅ `backend/app/agents/twin.py` — `DigitalTwin.evaluate(proposal)`.
-- ✅ Hard budget rejection: a proposal exceeding `identity.budget_max` is rejected by
+- `backend/app/agents/twin.py` — `DigitalTwin.evaluate(proposal)`.
+- Hard budget rejection: a proposal exceeding `identity.budget_max` is rejected by
   the rule-based layer before any LLM call — zero cost to enforce a hard constraint.
-- ✅ Preference-matched favorable scoring: category overlap + ChromaDB memory hits
+- Preference-matched favorable scoring: category overlap + ChromaDB memory hits
   both contribute to `personal_score`.
 
 **Day 7: Scraper & MCP Tool Wrappers**
 - ⬜ Uniform MCP-style `Tool` wrapper interface — **not built**; each service
   (Amadeus/Places/GraphRAG/scraper) still has its own function signature. Real
   value would come from a shared interface if/when a true MCP server is added.
-- ✅ **Web-search/trending agent — built, using Reddit, not Instagram.**
+- **Web-search/trending agent — built, using Reddit, not Instagram.**
   Instagram has no public API for third-party location/hashtag search;
   scraping it means violating their ToS (fragile, IP-ban risk, legal exposure).
   `backend/app/agents/scraper.py` uses Reddit's public JSON search (no auth
@@ -116,17 +116,17 @@ session via a genuinely flaky test run.
   `tests/test_budget_and_scraper.py`.
 
 **Day 8: Mediator & Negotiation Loop**
-- ✅ LangGraph orchestrator: `backend/app/agents/mediator.py` — nodes
+- LangGraph orchestrator: `backend/app/agents/mediator.py` — nodes
   `propose → score_twins → check_threshold → reconfigure → (loop)`.
-- ✅ Reconfiguration queries GraphRAG for alternatives to each rejecting twin's
+- Reconfiguration queries GraphRAG for alternatives to each rejecting twin's
   disliked category/place.
-- ✅ Break condition: all twins ACCEPT, **or** `final_score >= 80`, **or**
+- Break condition: all twins ACCEPT, **or** `final_score >= 80`, **or**
   `max_rounds` (default 5) reached.
 
 ## Phase 4 — UI & Deployment
 
 **Day 9: Negotiation UI**
-- ✅ `frontend/src/panels/negotiationPanel.js` — create/join a group by code, start
+- `frontend/src/panels/negotiationPanel.js` — create/join a group by code, start
   survey, run negotiation, round-by-round transcript with per-twin verdicts.
   Verified end-to-end in-browser against the real backend: real join code, 2
   persisted identities, real LangGraph-orchestrated negotiation, 0 LLM calls.
@@ -135,29 +135,29 @@ session via a genuinely flaky test run.
   actually match for UI-driven proposals (only the pytest suite exercises real
   categories). Needs a `GET /api/destinations/{id}/category`-style lookup, or for
   the frontend to carry `graph_seed.json`'s categories, wired in a follow-up.
-- 🧩 Final itinerary → dashed globe line: reuses the existing route-planner dashed
+- Final itinerary → dashed globe line: reuses the existing route-planner dashed
   line (`globe/routes.js`) — not yet wired to redraw from the negotiation result's
   `final_proposal` specifically (currently only reflects the route planner's own
   stop list).
 
 **Day 10: Docker & Deployment**
-- ✅ `docker-compose.agents.yml` — additive compose file (`docker compose -f
+- `docker-compose.agents.yml` — additive compose file (`docker compose -f
   docker-compose.yml -f docker-compose.agents.yml up --build`) adding Neo4j +
   ChromaDB without touching the working base stack. Config validated
   (`docker compose config`); a full build was interrupted by Docker Desktop's
   daemon restarting mid-build in this session — re-run the command above to
   complete it (should be a normal build after that).
-- ✅ `backend/Dockerfile` accepts `INSTALL_AGENT_EXTRAS=1` to bake in
+- `backend/Dockerfile` accepts `INSTALL_AGENT_EXTRAS=1` to bake in
   langgraph/neo4j/chromadb (installs `build-essential` first as a safety net for
   `chroma-hnswlib`'s native extension on Linux).
-- ✅ `.env.example` updated with all new optional keys.
+- `.env.example` updated with all new optional keys.
 - ⬜ VPS/cloud deployment prep. **Not started** — GitHub Pages (already deployed)
   still can't run any of this; Docker Compose is the current answer. A cloud deploy
   target (Render/Railway/Fly/AWS) is a separate decision (cost, region, who manages
   the Neo4j/Chroma volumes) best made once you've used the local version.
 
 **Day 9 (addendum): Mobile**
-- ✅ Decision: responsive web only (scale existing site to phone size, same
+- Decision: responsive web only (scale existing site to phone size, same
   features), not a native app wrapper. Fixed real overflow bugs found via
   actual mobile-viewport testing (375×812): the bottom toolbar ran off both
   edges of the screen (no wrap/width cap), header text crowded the live-status
@@ -176,7 +176,7 @@ session via a genuinely flaky test run.
 
 ## What "done" means right now
 
-Everything marked ✅ is **real code that runs and is covered by a test**, using the
+Everything marked is **real code that runs and is covered by a test**, using the
 rule-based path — meaning the entire negotiation loop, scoring, threshold-triggered
 reconfiguration, survey flow, and GraphRAG queries work **today, for $0**, before you
 add the OpenRouter key or start the Neo4j/ChromaDB containers (which fall back

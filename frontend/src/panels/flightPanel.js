@@ -9,11 +9,8 @@ function sourcesLine(sources) {
 }
 
 function unavailableBlock(title, data) {
-  const msg = data.status === 'not_configured'
-    ? 'Live web search isn’t configured for this deployment.'
-    : (data.message || 'No real data available right now.');
-  return `<div class="sectionTitle">${title} <span class="srcTag">not available</span></div>
-    <div class="loading err">${msg}</div>`;
+  return `<div class="sectionTitle">${title} <span class="srcTag">unavailable</span></div>
+    <div class="loading">Data is unavailable at the moment.</div>`;
 }
 
 export function renderFlights(data) {
@@ -33,13 +30,20 @@ export function renderFlights(data) {
 }
 
 export function renderBestTime(bt) {
-  if (bt.status !== 'ok') return unavailableBlock('Best Time to Travel', bt);
-  const months = (bt.best_months || []).join(', ') || 'not specified';
+  if (bt.status !== 'ok') return unavailableBlock('Best time to travel', bt);
+  const best = new Set(bt.best_months || []);
+  const bars = bt.months.map((m) => `
+    <div class="btCol" title="${m.month_name}: ${m.avg_temp_c} C, ${m.rain_mm} mm rain, comfort ${m.comfort_score}">
+      <div class="btBar ${best.has(m.month_name) ? 'best' : ''}" style="height:${Math.max(4, m.comfort_score)}%"></div>
+      <span>${m.month_name[0]}</span>
+    </div>`).join('');
+  const source = bt.source === 'open-meteo-era5' ? 'ERA5 climate data, 5-year average' : 'web research';
   return `
-    <div class="sectionTitle">Best Time to Travel <span class="srcTag">web research</span></div>
-    <div class="bestPick"><b>${months}</b></div>
-    <div class="loading">${bt.narrative || ''}</div>
-    ${bt.avoid_months?.length ? `<div class="loading err">Consider avoiding: ${bt.avoid_months.join(', ')}</div>` : ''}
+    <div class="sectionTitle">Best time to travel <span class="srcTag">${source}</span></div>
+    <div class="bestPick"><b>${(bt.best_months || []).join(', ')}</b> score highest for temperature and rainfall.</div>
+    <div class="btChart">${bars}</div>
+    ${bt.narrative ? `<div class="loading">${bt.narrative}</div>` : ''}
+    ${bt.avoid_months?.length ? `<div class="loading">Least comfortable: ${bt.avoid_months.join(', ')}</div>` : ''}
     ${sourcesLine(bt.sources)}`;
 }
 

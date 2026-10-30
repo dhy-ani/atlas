@@ -67,7 +67,9 @@ def get_db():
 
 
 def init_db() -> None:
-    """Create tables if they don't exist. No Alembic migrations yet — fine for
-    this stage; models are additive-only so far. Called once at app startup."""
+    """Schema is owned by Alembic (backend/migrations). Run `alembic upgrade head`
+    before starting the app. For local SQLite and the test suite only, tables are
+    created automatically so a fresh checkout works with zero setup."""
     from app.db import models  # noqa: F401  (registers models on Base.metadata)
-    Base.metadata.create_all(bind=engine)
+    if IS_SQLITE:
+        Base.metadata.create_all(bind=engine)

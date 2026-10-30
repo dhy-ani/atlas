@@ -21,7 +21,7 @@ from app.agents import cache
 
 REDDIT_SEARCH_URL = "https://www.reddit.com/search.json"
 # Reddit blocks generic/default User-Agents outright — a descriptive one is required.
-HEADERS = {"User-Agent": "wanderlust-atlas-trip-planner/1.0 (by /u/wanderlust-atlas-app)"}
+HEADERS = {"User-Agent": "atlas-trip-planner/1.0 (by /u/wanderlust-atlas-app)"}
 CACHE_TTL_PURPOSE = "reddit_trending"
 
 

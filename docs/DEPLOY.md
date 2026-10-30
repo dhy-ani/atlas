@@ -1,6 +1,6 @@
 # Deployment
 
-**Live demo:** https://dhy-ani.github.io/wanderlust-atlas/
+**Live demo:** https://dhy-ani.github.io/atlas/
 
 GitHub Pages serves **static files only** — it cannot run the FastAPI backend. So
 the deployed site runs in **static mode**: a client-side port of the backend
@@ -25,15 +25,15 @@ changes, just run the helper:
 ./deploy/publish.ps1
 ```
 
-It rebuilds the static site (with the correct `/wanderlust-atlas/` base path) and
+It rebuilds the static site (with the correct `/atlas/` base path) and
 force-pushes `frontend/dist` to `gh-pages`. The manual equivalent:
 
 ```bash
 cd frontend
-VITE_STATIC=1 VITE_BASE="/wanderlust-atlas/" npm run build
+VITE_STATIC=1 VITE_BASE="/atlas/" npm run build
 touch dist/.nojekyll
 cd dist && git init -b gh-pages && git add -A && git commit -m deploy \
-  && git push -f https://github.com/dhy-ani/wanderlust-atlas.git gh-pages
+  && git push -f https://github.com/dhy-ani/atlas.git gh-pages
 ```
 
 ---
