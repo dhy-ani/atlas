@@ -17,6 +17,10 @@ def _signup(email="atlastest@example.com", password="testpass123", name="Atlas T
     return r.json()["token"]
 
 
+def _auth(email):
+    return {"Authorization": f"Bearer {_signup(email=email)}"}
+
+
 def test_health():
     r = client.get("/api/health")
     assert r.status_code == 200
@@ -49,7 +53,8 @@ def test_add_and_remove_atlas_destination():
 
 
 def test_flights_not_configured_without_keys():
-    r = client.get("/api/flights", params={"destination_name": "Paris", "destination_country": "France"})
+    r = client.get("/api/flights", params={"destination_name": "Paris", "destination_country": "France"},
+                   headers=_auth("flights_nc@example.com"))
     assert r.status_code == 200
     assert r.json()["status"] == "not_configured"
 
@@ -73,12 +78,13 @@ def test_best_time_unavailable_when_upstream_fails(monkeypatch):
     async def fake(lat, lng):
         return None
     monkeypatch.setattr("app.routers.predictions.climate_client.monthly_normals", fake)
-    r = client.get("/api/predict/best-time", params={"destination_name": "Rio", "lat": -22.9, "lng": -43.2})
+    r = client.get("/api/predict/best-time", params={"destination_name": "Rio", "lat": 61.0, "lng": 5.0})
     assert r.json()["status"] == "error"
 
 
 def test_tradeoff_not_configured_without_keys():
-    r = client.get("/api/predict/tradeoff", params={"destination_name": "Tokyo", "budget_usd": 2000})
+    r = client.get("/api/predict/tradeoff", params={"destination_name": "Tokyo", "budget_usd": 2000},
+                   headers=_auth("tradeoff_nc@example.com"))
     assert r.status_code == 200
     assert r.json()["status"] == "not_configured"
 

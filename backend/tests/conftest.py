@@ -73,3 +73,11 @@ def _fixture_research(monkeypatch):
         return pois, ("web" if pois else "unavailable")
 
     monkeypatch.setattr(research_agent, "research_pois", fake)
+
+
+@_pytest.fixture(autouse=True)
+def _no_paid_keys(monkeypatch):
+    """Tests must never spend money: remove live-data keys even if a developer's
+    local .env has real ones."""
+    for name in ("TAVILY_API_KEY", "OPENROUTER_API_KEY"):
+        monkeypatch.delenv(name, raising=False)

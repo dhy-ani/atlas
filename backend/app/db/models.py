@@ -141,3 +141,23 @@ class DestinationResearch(Base):
     recommendation: Mapped[str] = mapped_column(Text, default="")  # Negotiator agent's evaluated synthesis
     sources: Mapped[list] = mapped_column(JSON, default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
+class ApiCache(Base):
+    """Shared cache for paid/slow upstream calls. Lives in the main database (not
+    a per-instance file) so every serverless instance reuses the same entries."""
+    __tablename__ = "api_cache"
+    key: Mapped[str] = mapped_column(String(300), primary_key=True)
+    payload: Mapped[dict] = mapped_column(JSON)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
+class ApiUsage(Base):
+    """One row per paid upstream call actually made (cache hits are free and
+    never recorded). Backs the per-user rate limit."""
+    __tablename__ = "api_usage"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    kind: Mapped[str] = mapped_column(String(40))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, index=True)

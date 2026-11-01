@@ -14,7 +14,10 @@ async function get(path, params = {}, auth = false) {
   const qs = new URLSearchParams(params).toString();
   const url = `${API_BASE}/api${path}${qs ? `?${qs}` : ''}`;
   const res = await fetch(url, { headers: auth ? authHeaders() : {} });
-  if (!res.ok) throw new Error(`${path} -> ${res.status}`);
+  if (!res.ok) {
+    const detail = await res.json().then((d) => d.detail).catch(() => null);
+    throw new Error(detail || `${path} -> ${res.status}`);
+  }
   return res.json();
 }
 
@@ -48,11 +51,11 @@ const realApi = {
   // Real web-search-derived data — no dest_id, no mock. Every response has a
   // "status" field the caller must check.
   flights: (destinationName, destinationCountry = '', origin = 'JFK', depart) =>
-    get('/flights', { destination_name: destinationName, destination_country: destinationCountry, origin, ...(depart ? { depart } : {}) }),
+    get('/flights', { destination_name: destinationName, destination_country: destinationCountry, origin, ...(depart ? { depart } : {}) }, true),
   bestTime: (destinationName, destinationCountry = '', lat, lng) =>
-    get('/predict/best-time', { destination_name: destinationName, destination_country: destinationCountry, lat, lng }),
+    get('/predict/best-time', { destination_name: destinationName, lat, lng }),
   tradeoff: (destinationName, destinationCountry = '', budgetUsd) =>
-    get('/predict/tradeoff', { destination_name: destinationName, destination_country: destinationCountry, budget_usd: budgetUsd }),
+    get('/predict/tradeoff', { destination_name: destinationName, destination_country: destinationCountry, budget_usd: budgetUsd }, true),
 
   planRoute: (stops, optimize = false, roundTrip = false) =>
     post('/routes/plan', { stops, optimize, round_trip: roundTrip }),

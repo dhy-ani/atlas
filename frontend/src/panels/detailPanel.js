@@ -51,14 +51,16 @@ export function initDetailPanel({ onAddBucket, onAddRoute, onOpenMap, onSearchNe
         <div class="metaChip"><b>Reference budget:</b> $${dest.budgetLow}–$${dest.budgetHigh}/day</div>
       </div>
 
-      <div id="liveIntel" class="liveIntel"><div class="loading">Loading live flights &amp; best-time data…</div></div>
+      <div id="liveIntel" class="liveIntel"><div class="loading">Loading climate data…</div></div>
+      <button class="actBtn" id="btnLivePrices">Check live flight and cost data</button>
+      <div id="pricesBox"></div>
 
       <div class="peopleInput">
         <label>Total trip budget ($)</label>
         <input type="number" id="tradeoffBudget" value="${defaultBudget}" min="0" step="50"/>
       </div>
       <input type="range" id="tradeoffSlider" min="200" max="10000" step="50" value="${defaultBudget}" style="width:100%;margin:6px 0 12px;"/>
-      <div id="tradeoffBox"><div class="loading">Adjust the budget above to compare budget vs. luxury options.</div></div>
+      <div id="tradeoffBox"></div>
 
       ${contentHtml}
 
@@ -107,29 +109,47 @@ export function initDetailPanel({ onAddBucket, onAddRoute, onOpenMap, onSearchNe
 
     const slider = document.getElementById('tradeoffSlider');
     const budgetField = document.getElementById('tradeoffBudget');
-    const syncAndLoadTradeoff = (val) => {
-      slider.value = val; budgetField.value = val;
+    let pricesRequested = false;
+    const syncBudget = (val) => { slider.value = val; budgetField.value = val; };
+    const reloadTradeoff = () => {
+      if (!pricesRequested) return;
       clearTimeout(tradeoffTimer);
-      tradeoffTimer = setTimeout(() => loadTradeoff(dest, Number(val)), 400);
+      tradeoffTimer = setTimeout(() => loadTradeoff(dest, Number(budgetField.value)), 600);
     };
-    slider.addEventListener('input', () => syncAndLoadTradeoff(slider.value));
-    budgetField.addEventListener('input', () => syncAndLoadTradeoff(budgetField.value));
+    slider.addEventListener('input', () => syncBudget(slider.value));
+    slider.addEventListener('change', reloadTradeoff);
+    budgetField.addEventListener('change', () => { syncBudget(budgetField.value); reloadTradeoff(); });
 
-    loadIntel(dest);
-    loadTradeoff(dest, defaultBudget);
+    document.getElementById('btnLivePrices').onclick = () => {
+      pricesRequested = true;
+      document.getElementById('btnLivePrices').style.display = 'none';
+      loadPrices(dest);
+      loadTradeoff(dest, Number(budgetField.value));
+    };
+
+    loadClimate(dest);
   }
 
-  async function loadIntel(dest) {
+  async function loadClimate(dest) {
     const box = document.getElementById('liveIntel');
     try {
-      const [flights, best] = await Promise.all([
-        api.flights(dest.name, dest.country),
-        api.bestTime(dest.name, dest.country, dest.lat, dest.lng),
-      ]);
+      const best = await api.bestTime(dest.name, dest.country, dest.lat, dest.lng);
       if (current?.id !== dest.id) return; // user moved on
-      box.innerHTML = renderFlights(flights) + renderBestTime(best);
+      box.innerHTML = renderBestTime(best);
     } catch (e) {
-      box.innerHTML = `<div class="loading err">Couldn't reach the backend: ${e.message}. Is it running on :8000?</div>`;
+      box.innerHTML = '<div class="loading">Climate data is unavailable at the moment.</div>';
+    }
+  }
+
+  async function loadPrices(dest) {
+    const box = document.getElementById('pricesBox');
+    box.innerHTML = '<div class="loading">Searching current flight prices…</div>';
+    try {
+      const flights = await api.flights(dest.name, dest.country);
+      if (current?.id !== dest.id) return;
+      box.innerHTML = renderFlights(flights);
+    } catch (e) {
+      box.innerHTML = `<div class="loading">${e.message.includes('limited') || e.message.includes('limit') ? e.message : 'Flight data is unavailable at the moment.'}</div>`;
     }
   }
 
@@ -142,7 +162,7 @@ export function initDetailPanel({ onAddBucket, onAddRoute, onOpenMap, onSearchNe
       if (current?.id !== dest.id) return;
       box.innerHTML = renderTradeoff(tr, budgetUsd);
     } catch (e) {
-      box.innerHTML = `<div class="loading err">Couldn't reach the backend: ${e.message}.</div>`;
+      box.innerHTML = `<div class="loading">${e.message.includes('limit') ? e.message : 'Cost data is unavailable at the moment.'}</div>`;
     }
   }
 
