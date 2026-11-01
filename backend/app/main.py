@@ -10,7 +10,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.agents import live_data_agent
 from app.config import get_settings
-from app.db.engine import init_db
+from sqlalchemy import text
+
+from app.db.engine import DATABASE_URL_SOURCE, engine, init_db
 from app.routers import (
     atlas, auth, availability, flights, group, negotiate, places,
     predictions, research, routes, survey, wishlist,
@@ -53,11 +55,26 @@ app.include_router(negotiate.router)
 app.include_router(research.router)
 
 
+def _database_status() -> dict:
+    """Which variable configured the database and whether it has the schema.
+    Never includes hostnames or credentials."""
+    try:
+        with engine.connect() as conn:
+            try:
+                version = conn.execute(text("select version_num from alembic_version")).scalar()
+            except Exception:
+                version = None
+        return {"source": DATABASE_URL_SOURCE, "reachable": True, "schema_version": version}
+    except Exception:
+        return {"source": DATABASE_URL_SOURCE, "reachable": False, "schema_version": None}
+
+
 @app.get("/api/health")
 def health():
     """Handy for the frontend to show which live integrations are active."""
     return {
         "status": "ok",
+        "database": _database_status(),
         "live": {
             "live_data_agent": live_data_agent.is_configured(),
             "places_google": settings.has_places,

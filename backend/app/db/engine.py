@@ -30,7 +30,9 @@ load_dotenv(ENV_PATH, override=False)
 
 
 def _database_url() -> str:
-    url = os.environ.get("DATABASE_URL", "")
+    # ATLAS_DATABASE_URL is this project's own database; DATABASE_URL is the
+    # generic name (and what hosting integrations inject), used as a fallback.
+    url = os.environ.get("ATLAS_DATABASE_URL") or os.environ.get("DATABASE_URL", "")
     if url:
         # Vercel Postgres/Neon sometimes hand out "postgres://"; SQLAlchemy's
         # psycopg driver wants the "postgresql://" scheme.
@@ -42,6 +44,10 @@ def _database_url() -> str:
     return f"sqlite:///{db_path}"
 
 
+DATABASE_URL_SOURCE = (
+    "ATLAS_DATABASE_URL" if os.environ.get("ATLAS_DATABASE_URL")
+    else "DATABASE_URL" if os.environ.get("DATABASE_URL") else "local-sqlite"
+)
 DATABASE_URL = _database_url()
 IS_SQLITE = DATABASE_URL.startswith("sqlite")
 

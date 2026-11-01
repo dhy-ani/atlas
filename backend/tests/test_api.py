@@ -26,6 +26,8 @@ def test_health():
     assert r.status_code == 200
     assert r.json()["status"] == "ok"
     assert r.json()["live"]["live_data_agent"] is False  # no keys configured in tests
+    db = r.json()["database"]
+    assert db["reachable"] is True and "host" not in db  # reports the source variable, never a hostname
 
 
 def test_atlas_requires_auth():

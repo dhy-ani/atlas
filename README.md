@@ -104,7 +104,7 @@ Optional: `docker compose up --build` runs the full stack in containers. See `do
 
 | Variable | Purpose |
 |---|---|
-| `DATABASE_URL` | Postgres connection string. Leave empty locally to use SQLite. |
+| `ATLAS_DATABASE_URL` | Postgres connection string for Atlas (falls back to `DATABASE_URL`). Leave empty locally to use SQLite. |
 | `JWT_SECRET` | Required in production. Generate with `python -c "import secrets; print(secrets.token_hex(32))"`. |
 | `TAVILY_API_KEY`, `OPENROUTER_API_KEY` | Enable the live-data and research agents. |
 | `GOOGLE_PLACES_API_KEY` | Optional richer place search. |
